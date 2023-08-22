@@ -1,6 +1,7 @@
 ﻿using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Support.UI;
+using SeleniumExtras.WaitHelpers;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -16,7 +17,7 @@ namespace ScheduleBuilder
         {
             new DriverManager().SetUpDriver(new ChromeConfig());
             ChromeOptions options = new ChromeOptions();
-            options.AddArgument("headless");
+            //options.AddArgument("headless");
             ChromeDriverService service = ChromeDriverService.CreateDefaultService();
             service.HideCommandPromptWindow = true;
             service.SuppressInitialDiagnosticInformation = true;
@@ -26,6 +27,7 @@ namespace ScheduleBuilder
             {
                 Url = "https://sso.afeka.ac.il/my.policy"
             };
+            driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(5);
 
             IWebElement element = driver.FindElement(By.Id("input_1"));
             element.SendKeys(username);
@@ -93,6 +95,8 @@ namespace ScheduleBuilder
 
         private static void GoToPage(ref IWebDriver driver, string year, string semester, Course course)
         {
+            WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
+
             IWebElement element = driver.FindElement(By.Id("R1C19"));
             SelectElement oSelect = new SelectElement(element);
             oSelect.SelectByValue(semester);
@@ -104,8 +108,10 @@ namespace ScheduleBuilder
             element = driver.FindElement(By.XPath("//*[@id=\"kt_content\"]/div/div[2]/div/div/div/form/a[2]"));
             element.Click();
             element = driver.FindElement(By.XPath("//*[@id=\"SubjectCode\"]"));
+            element.Clear();
             element.SendKeys(course.ID.ToString());
-            element = driver.FindElement(By.Name("B2"));
+            element = driver.FindElement(By.XPath("//*[@id=\"MyFather1\"]/div/div/input[2]"));
+            wait.Until(ExpectedConditions.ElementToBeClickable(element));
             element.Click();
         }
 
@@ -200,9 +206,12 @@ namespace ScheduleBuilder
             group.Dependents = new List<Instance>();
             foreach (var id in dependsList)
             {
-                Instance dependence = new Instance(id);
-                group.Dependents.Add(dependence);
-                linker.Add(id, dependence);
+                if (!linker.ContainsKey(id))
+                {
+                    Instance dependence = new Instance(id);
+                    group.Dependents.Add(dependence);
+                    linker.Add(id, dependence);
+                }
             }
         }
 

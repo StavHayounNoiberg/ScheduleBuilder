@@ -59,8 +59,10 @@ namespace ScheduleBuilder
         {
             if (CourseBox.MaskFull && CoursesView.Items.ContainsKey(CourseBox.Text) == false)
             {
-                var item = new ListViewItem(CourseBox.Text);
-                item.Name = CourseBox.Text;
+                var item = new ListViewItem(CourseBox.Text)
+                {
+                    Name = CourseBox.Text
+                };
                 CoursesView.Items.Add(item);
                 CoursesView.View = System.Windows.Forms.View.List;
             }

@@ -114,9 +114,9 @@ namespace ScheduleBuilder
                 {
                     this.DialogResult = DialogResult.Cancel;
                 }
-                else if (e.Result is string)
+                else if (e.Result is string result)
                 {
-                    MessageBox.Show((string)e.Result, "Schedule Building Failed", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                    MessageBox.Show(result, "Schedule Building Failed", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                     this.DialogResult = DialogResult.Retry;
                 }
                 else if (e.Result is Tuple<List<Schedule>, List<Course>> res)
