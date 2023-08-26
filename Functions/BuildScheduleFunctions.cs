@@ -17,7 +17,7 @@ namespace ScheduleBuilder
         {
             new DriverManager().SetUpDriver(new ChromeConfig());
             ChromeOptions options = new ChromeOptions();
-            //options.AddArgument("headless");
+            options.AddArgument("--headless=new");
             ChromeDriverService service = ChromeDriverService.CreateDefaultService();
             service.HideCommandPromptWindow = true;
             service.SuppressInitialDiagnosticInformation = true;
@@ -107,10 +107,10 @@ namespace ScheduleBuilder
             oSelect.SelectByValue(year);
             element = driver.FindElement(By.XPath("//*[@id=\"kt_content\"]/div/div[2]/div/div/div/form/a[2]"));
             element.Click();
-            element = driver.FindElement(By.XPath("//*[@id=\"SubjectCode\"]"));
+            element = driver.FindElement(By.Id("SubjectCode"));
             element.Clear();
             element.SendKeys(course.ID.ToString());
-            element = driver.FindElement(By.XPath("//*[@id=\"MyFather1\"]/div/div/input[2]"));
+            element = driver.FindElement(By.Name("B2"));
             wait.Until(ExpectedConditions.ElementToBeClickable(element));
             element.Click();
         }
