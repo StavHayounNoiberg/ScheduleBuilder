@@ -61,7 +61,7 @@ namespace ScheduleBuilder
                 GetCourseName(ref driver, course);
                 GetCourseTest(ref driver, course);
 
-                IWebElement element = driver.FindElement(By.XPath("//*[@id=\"kt_content\"]/div/div[2]/div/div/div/form/table/tbody/tr[2]/td")); // tags main cointaner
+                IWebElement element = driver.FindElement(By.XPath("//*[@id=\"main-content\"]/form/table/tbody/tr[2]/td")); // tags main cointaner
                 List<IWebElement> tags = new List<IWebElement>(element.FindElements(By.XPath("*")));                                            // all children tags
 
                 Dictionary<string, Instance> linker = new Dictionary<string, Instance>();
@@ -100,12 +100,12 @@ namespace ScheduleBuilder
             IWebElement element = driver.FindElement(By.Id("R1C19"));
             SelectElement oSelect = new SelectElement(element);
             oSelect.SelectByValue(semester);
-            element = driver.FindElement(By.XPath("//*[@id=\"kt_content\"]/div/div[2]/div/div/div/form/a[1]"));
+            element = driver.FindElement(By.XPath("//*[@id=\"main-content\"]/form/a[1]"));
             element.Click();
             element = driver.FindElement(By.Id("ChangeYear"));
             oSelect = new SelectElement(element);
             oSelect.SelectByValue(year);
-            element = driver.FindElement(By.XPath("//*[@id=\"kt_content\"]/div/div[2]/div/div/div/form/a[2]"));
+            element = driver.FindElement(By.XPath("//*[@id=\"main-content\"]/form/a[2]"));
             element.Click();
             element = driver.FindElement(By.Id("SubjectCode"));
             element.Clear();
@@ -120,7 +120,7 @@ namespace ScheduleBuilder
             IWebElement element;
             try
             {
-                element = driver.FindElement(By.XPath("//*[@id=\"kt_content\"]/div/div[2]/div/div/div/form/table/tbody/tr[1]/td/h1"));
+                element = driver.FindElement(By.XPath("//*[@id=\"main-content\"]/form/table/tbody/tr[1]/td/h1"));
             }
             catch
             {
@@ -143,45 +143,52 @@ namespace ScheduleBuilder
 
         private static void GetCourseTest(ref IWebDriver driver, Course course)
         {
-            IWebElement element = driver.FindElement(By.XPath("//*[@id=\"kt_content\"]/div/div[2]/div/div/div/form/table/tbody/tr[2]/td/div[1]/input"));
+            IWebElement element = driver.FindElements(By.Name("B2")).First();
             element.Click();
-            element = driver.FindElement(By.XPath("//*[@id=\"kt_content\"]/div/div[2]/div/div/div/form/table/tbody/tr[9]/td"));
-
-            List<Tuple<string, string, DateTime>> tests = new List<Tuple<string, string, DateTime>>();
-            string[] testsInfo = element.GetAttribute("innerText").Split('\n');
-            int i = 0;
-
-            foreach (var line in testsInfo)
+            try
             {
-                if (line.Contains("מועד"))
+                element = driver.FindElement(By.XPath("//*[@id=\"kt_content\"]/div/div[2]/div/div/div/form/table/tbody/tr[9]/td"));
+
+                List<Tuple<string, string, DateTime>> tests = new List<Tuple<string, string, DateTime>>();
+                string[] testsInfo = element.GetAttribute("innerText").Split('\n');
+                int i = 0;
+
+                foreach (var line in testsInfo)
                 {
-                    i++;
-                    Tuple<string, string, DateTime> test = null;
-                    DateTime dateAndTime = DateTime.MinValue;
-                    DateTime date = DateTime.MinValue;
-                    TimeSpan time = TimeSpan.MinValue;
-                    string[] testLine = line.Replace("\r", "").Split(' ');
-                    foreach (var info in testLine)
+                    if (line.Contains("מועד"))
                     {
-                        if (DateTime.TryParseExact(info, "dd/MM/yyyy", System.Globalization.CultureInfo.CurrentCulture, System.Globalization.DateTimeStyles.AllowWhiteSpaces, out DateTime _date))
+                        i++;
+                        Tuple<string, string, DateTime> test = null;
+                        DateTime dateAndTime = DateTime.MinValue;
+                        DateTime date = DateTime.MinValue;
+                        TimeSpan time = TimeSpan.MinValue;
+                        string[] testLine = line.Replace("\r", "").Split(' ');
+                        foreach (var info in testLine)
                         {
-                            date = _date;
-                        }
-                        else if (TimeSpan.TryParseExact(info, "h\\:mm", System.Globalization.CultureInfo.CurrentCulture, out TimeSpan _time))
-                        {
-                            time = _time;
-                        }
-                        if (date != DateTime.MinValue && time != TimeSpan.MinValue)
-                        {
-                            dateAndTime = date.Add(time);
-                            test = new Tuple<string, string, DateTime>(course.Name, i.ToString(), dateAndTime);
-                            tests.Add(test);
+                            if (DateTime.TryParseExact(info, "dd/MM/yyyy", System.Globalization.CultureInfo.CurrentCulture, System.Globalization.DateTimeStyles.AllowWhiteSpaces, out DateTime _date))
+                            {
+                                date = _date;
+                            }
+                            else if (TimeSpan.TryParseExact(info, "h\\:mm", System.Globalization.CultureInfo.CurrentCulture, out TimeSpan _time))
+                            {
+                                time = _time;
+                            }
+                            if (date != DateTime.MinValue && time != TimeSpan.MinValue)
+                            {
+                                dateAndTime = date.Add(time);
+                                test = new Tuple<string, string, DateTime>(course.Name, i.ToString(), dateAndTime);
+                                tests.Add(test);
+                            }
                         }
                     }
                 }
+                course.Tests = tests;
             }
-            course.Tests = tests;
-            driver.Navigate().Back();
+            catch { course.Tests = new List<Tuple<string, string, DateTime>>(); }
+            finally
+            {
+                driver.Navigate().Back();
+            }
         }
 
         private static void GetTypeGroupID(IWebElement tag, out int type, out string groupID)

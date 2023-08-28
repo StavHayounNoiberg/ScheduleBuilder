@@ -9,6 +9,7 @@ namespace ScheduleBuilder
     public partial class DataBuilding : Form
     {
         public LoginDataStruct Data { get; set; }
+        private IWebDriver driver;
 
         public DataBuilding()
         {
@@ -36,7 +37,6 @@ namespace ScheduleBuilder
                 e.Cancel = true;
                 return;
             }
-            IWebDriver driver = null;
             try
             {
                 driver = BuildScheduleFunctions.AfekaLogin(Data.Username, Data.Password);
@@ -100,6 +100,7 @@ namespace ScheduleBuilder
         {
             try
             {
+                driver.Quit();
                 BuildScheduleFunctions.KillChrome();
             }
             catch { }
